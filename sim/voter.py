@@ -36,43 +36,69 @@ class Voter:
         raise NotImplementedError
 
 
-class RandomVoter(Voter):
-    def get_results(self, results):
-        pass
-
-    def vote(self):
-        return random.choice(self.candidate_pool)
-
-
 class GreedyVoter(Voter):
     def __init__(self, *args, **kwargs):
         Voter.__init__(self, *args, **kwargs)
-        self.__best_candidate = max(self.candidate_pool, key=self.utility)
+        if self.preference == preference_profile.Single:
+            self.__best_candidate = max(self.candidate_pool, key=self.utility)
+        elif self.preference == preference_profile.Total:
+            self.__best_candidate = sorted(self.candidate_pool, key=self.utility, reverse=True)
+        else:
+            raise Exception("Invalid preference profile for GreedyVoter. Accepts Single or Total preference profiles.")
 
     def get_results(self, results):
         pass
 
     def vote(self):
-        return self.preference(self.__best_candidate)
+        self.preference(self.__best_candidate)
+
+
+class RandomVoter(Voter):
+    def __init__(self, *args, **kwargs):
+        Voter.__init__(self, *args, **kwargs)
+        if not self.preference == preference_profile.Single or not self.preference == preference_profile.Total:
+            raise Exception("Invalid preference profile. RandomVoter only accepts single preferences.")
+
+    def get_results(self, results):
+        pass
+
+    def vote(self):
+        if self.preference == preference_profile.Single:
+            return self.preference(random.choice(self.candidate_pool))
+        else:
+            return self.preference(random.shuffle(self.candidate_pool))
 
 
 class DummyVoter(Voter):
     def __init__(self, *args, **kwargs):
         Voter.__init__(self, *args, **kwargs)
         # print type(self.preference)
-        if not self.preference == preference_profile.Single:
+        if self.preference == preference_profile.Single:
+            self.__best_candidate = max(self.candidate_pool, key=self.utility)
+        elif self.preference == preference_profile.Total:
+            self.__best_candidate = sorted(self.candidate_pool, key=self.utility, reverse=True)
+        else:
             raise Exception("Invalid preference profile. DummyVoter only accepts single preferences.")
-        self.__best_candidate = max(self.candidate_pool, key=self.utility)
 
     def get_results(self, results):
-        score = dict(map(lambda x: (x, 0.), self.candidate_pool))
-        n = 1.*len(results)
-        for r in results:
-            score[r.candidate] += 1
-        u = dict()
-        for c in score.iterkeys():
-            u[c] = self.utility(c) * score[c] / n
-        self.__best_candidate = max(u, key=lambda x: u[x])
+        if self.preference == preference_profile.Single:
+            score = dict(map(lambda x: (x, 0.), self.candidate_pool))
+            n = 1.*len(results)
+            for r in results:
+                score[r.candidate] += 1
+            u = dict()
+            for c in score.iterkeys():
+                u[c] = self.utility(c) * score[c] / n
+            self.__best_candidate = max(u, key=lambda x: u[x])
+        else:
+            score = dict(map(lambda x: (x, 0), self.candidate_pool))
+            for r in results:
+                for i, v in enumerate(reversed(r)):
+                    score[v] += i
+            u = dict()
+            for c in score.iterkeys():
+                u[c] = self.utility(c) * score[c]
+            self.__best_candidate = sorted(u, key=lambda x: u[x], reverse=True)
 
     def vote(self):
         return self.preference(self.__best_candidate)

@@ -42,6 +42,7 @@ class Single(PreferenceProfile):
 class Total(PreferenceProfile):
     def __init__(self, preferences):
         self.__candidates = preferences
+        self._index = 1
 
     def set_preference(self, preferences):
         self.__candidates = preferences
@@ -58,7 +59,20 @@ class Total(PreferenceProfile):
         return sorted(score, key=lambda candidate: score[candidate])
 
     def __getitem__(self, item):
-        return self.__candidates[item]
+        return self.__candidates[item-1]
+
+    def __iter__(self):
+        return self
+
+    def next(self):
+        if self._index > len(self.__candidates):
+            raise StopIteration
+        else:
+            self._index += 1
+            return self[self._index - 1]
+
+    def __len__(self):
+        return len(self.__candidates)
 
     def __repr__(self):
         return "[%s]" % (','.join(self.__candidates),)

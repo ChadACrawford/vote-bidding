@@ -1,5 +1,6 @@
-import simulator
+import simulator, preference_profile
 from matplotlib import pyplot
+import random
 
 
 def _calc_utilities_single(candidates, results):
@@ -9,6 +10,17 @@ def _calc_utilities_single(candidates, results):
         u[r.candidate] += 1.
     for c in candidates:
         u[c] /= n
+    return u
+
+
+def _calc_utilities_total(candidates, results):
+    n = len(results)
+    u = dict(map(lambda x: (x, 0), candidates))
+    for r in results:
+        for i, v in enumerate(reversed(r)):
+            u[v] += i
+    for c in candidates:
+        u[c] /= 1. * n
     return u
 
 
@@ -28,19 +40,9 @@ class Competition:
         self._results_t = results_t
 
     def display_results(self):
-        raise NotImplementedError
-
-
-class MultiAgent(Competition):
-    def __init__(self, candidates, competitors, utilities, pref_profile, time=2):
-        voters = []
-        for voter in competitors:
-            for utility_fn in utilities:
-                voters.append(voter(candidates, utility_fn, pref_profile))
-        Competition.__init__(self, candidates, voters, pref_profile, time)
-
-    def display_results(self):
-        us = [_calc_utilities_single(self._candidates, rs) for rs in self._results_t]
+        calc_utilities = _calc_utilities_single if self._preference_profile == preference_profile.Single\
+            else _calc_utilities_total
+        us = [calc_utilities(self._candidates, rs) for rs in self._results_t]
         f = dict([(c, map(lambda x: x[c], us)) for c in self._candidates])
         for c in self._candidates:
             # print c,f[c]
@@ -48,3 +50,21 @@ class MultiAgent(Competition):
 
         pyplot.legend()
         pyplot.show()
+
+
+class Grouped(Competition):
+    def __init__(self, candidates, competitors, utilities, pref_profile, time=2):
+        voters = []
+        for voter in competitors:
+            for utility_fn in utilities:
+                voters.append(voter(candidates, utility_fn, pref_profile))
+        Competition.__init__(self, candidates, voters, pref_profile, time)
+
+
+class RandomAssignment(Competition):
+    def __init__(self, candidates, competitors, utilities, pref_profile, time=2):
+        voters = []
+        for utility_fn in utilities:
+            voter = random.choice(competitors)
+            voters.append(voter(candidates, utility_fn, pref_profile))
+        Competition.__init__(self, candidates, voters, pref_profile, time)
