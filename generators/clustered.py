@@ -33,7 +33,11 @@ def gen_dataset(name, num_candidates, num_clusters, cluster_size, random_noise=0
 
 def main():
     for i in range(1, 11):
-        gen_dataset("clustered_%d" % (i,), 10, 5, 10, random_noise=0.2)
+        gen_dataset("clustered2_%d" % (i,), #dataset name
+                    10, #number of candidates
+                    100, #number of clusters
+                    1, #cluster size
+                    random_noise=0.05) #noise
     pass
 
 

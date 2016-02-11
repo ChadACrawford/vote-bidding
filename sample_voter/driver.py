@@ -7,7 +7,7 @@ import generators.load
 import sim.competition, sim.voter, sim.preference_profile
 import sample_voter
 
-FILENAME = "datasets/clustered_6.json"
+FILENAME = "datasets/clustered2_10.json"
 COMPETITION_MODULE = sim.competition.RandomAssignment
 COMPETITORS = (sim.voter.DummyVoter,)
 PREF_PROFILE = sim.preference_profile.Total
