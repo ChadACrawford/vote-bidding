@@ -7,17 +7,17 @@ import generators.load
 import sim.competition, sim.voter, sim.preference_profile
 import sample_voter
 
-FILENAME = "datasets/clustered2_10.json"
+FILENAME = "datasets/iterated_1.json"
 COMPETITION_MODULE = sim.competition.RandomAssignment
 COMPETITORS = (sim.voter.DummyVoter,)
-PREF_PROFILE = sim.preference_profile.Total
-MAX_TIME = 100
+PREF_PROFILE = sim.preference_profile.Single
+MAX_TIME = 20
 
 
 def main(filename, competition_module, competitors, pref_profile, max_time):
     print "Loading data file"
-    candidates, utilities = generators.load.read_file(filename)
-    competition = competition_module(candidates,
+    issues, utilities = generators.load.read_file(filename)
+    competition = competition_module(issues,
                                      competitors,
                                      utilities,
                                      pref_profile,
